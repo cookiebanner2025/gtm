@@ -62,7 +62,7 @@ const config = {
     // Tag Manager Configuration
     tagManagerConfig: {
         enabled: true,
-        containerId: 'GTM-WQMZC3RV'', // Add your GTM container ID here (e.g., 'GTM-XXXXXX')
+        containerId: 'GTM-WQMZC3RV', // Add your GTM container ID here (e.g., 'GTM-XXXXXX')
         dataLayerName: 'dataLayer' // Default dataLayer name
     },
     
