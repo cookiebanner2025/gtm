@@ -60,10 +60,11 @@ const config = {
     privacyPolicyUrl: 'https://yourdomain.com/privacy-policy', // Add your full privacy policy URL here
     
     // Tag Manager Configuration
-    tagManagerConfig: {
+  tagManagerConfig: {
         enabled: true,
-        containerId: 'GTM-WQMZC3RV', // Add your GTM container ID here (e.g., 'GTM-XXXXXX')
-        dataLayerName: 'dataLayer' // Default dataLayer name
+        containerId: '', // Add your GTM container ID here (e.g., 'GTM-XXXXXX')
+        dataLayerName: 'dataLayer', // Default dataLayer name
+        requireConsent: false // Add this new parameter
     },
     
     // Microsoft UET Configuration
@@ -444,7 +445,6 @@ function loadTagManager() {
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
 }
-
 // Enhanced cookie database with detailed descriptions
 const cookieDatabase = {
     // Existing cookies
@@ -2430,11 +2430,11 @@ function shouldShowBanner() {
 function initializeCookieConsent(detectedCookies, language) {
     const consentGiven = getCookie('cookie_consent');
     
-    // Check if banner should be shown based on geo-targeting and schedule
+    // Check if banner should be shown based on geo-targeting
     const geoAllowed = checkGeoTargeting(locationData);
-    const bannerShouldBeShown = geoAllowed && shouldShowBanner();
     
-    if (!consentGiven && config.behavior.autoShow && bannerShouldBeShown) {
+    // Always show banner if no consent given and geo allowed
+    if (!consentGiven && geoAllowed) {
         setTimeout(() => {
             showCookieBanner();
         }, config.behavior.bannerDelay * 1000);
@@ -2446,6 +2446,15 @@ function initializeCookieConsent(detectedCookies, language) {
             showFloatingButton();
         }
     }
+    
+    // Load GTM immediately if enabled and no consent required
+    if (config.tagManagerConfig.enabled && !config.tagManagerConfig.requireConsent) {
+        loadTagManager();
+    }}
+
+    
+
+
     // Explicitly apply the default language from config
     changeLanguage(config.languageConfig.defaultLanguage);
     
@@ -2713,7 +2722,7 @@ function hideFloatingButton() {
 function acceptAllCookies() {
     const consentData = {
         status: 'accepted',
-        gcs: 'G111', // Explicit GCS signal for all granted
+        gcs: 'G111',
         categories: {
             functional: true,
             analytics: true,
@@ -2732,7 +2741,7 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Push dataLayer event for consent acceptance with location data and GCS
+    // Push dataLayer event
     window.dataLayer.push({
         'event': 'cookie_consent_accepted',
         'consent_mode': {
@@ -2744,18 +2753,18 @@ function acceptAllCookies() {
             'functionality_storage': 'granted',
             'security_storage': 'granted'
         },
-        'gcs': 'G111', // Explicit GCS signal
+        'gcs': 'G111',
         'consent_status': 'accepted',
         'consent_categories': consentData.categories,
         'timestamp': new Date().toISOString(),
         'location_data': locationData
     });
     
-    // Load Tag Manager if advertising is accepted
-    if (consentData.categories.advertising && config.tagManagerConfig.enabled) {
+    // Always load Tag Manager if enabled, regardless of advertising consent
+    if (config.tagManagerConfig.enabled) {
         loadTagManager();
     }
-}
+}}
 
 function rejectAllCookies() {
     const consentData = {
