@@ -419,7 +419,8 @@ function setDefaultUetConsent() {
     });
 }
 
-// Load Google Tag Manager if enabled
+// ============== TAG MANAGER SECTION ============== //
+// Load Google Tag Manager immediately when banner is initialized
 function loadTagManager() {
     if (!config.tagManagerConfig.enabled || !config.tagManagerConfig.containerId) return;
     
@@ -2428,12 +2429,18 @@ function shouldShowBanner() {
 }
 
 // Main initialization function
+// Main initialization function
 function initializeCookieConsent(detectedCookies, language) {
     const consentGiven = getCookie('cookie_consent');
     
     // Check if banner should be shown based on geo-targeting and schedule
     const geoAllowed = checkGeoTargeting(locationData);
     const bannerShouldBeShown = geoAllowed && shouldShowBanner();
+    
+    // Load Tag Manager immediately if enabled
+    if (config.tagManagerConfig.enabled) {
+        loadTagManager();
+    }
     
     if (!consentGiven && config.behavior.autoShow && bannerShouldBeShown) {
         setTimeout(() => {
