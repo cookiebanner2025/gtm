@@ -62,7 +62,7 @@ const config = {
     languageConfig: {
         defaultLanguage: 'en',
         availableLanguages: [],
-        showLanguageSelector: true,
+        showLanguageSelector: false,
         autoDetectLanguage: true
     },
     
