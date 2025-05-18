@@ -60,11 +60,10 @@ const config = {
     privacyPolicyUrl: 'https://yourdomain.com/privacy-policy', // Add your full privacy policy URL here
     
     // Tag Manager Configuration
-  tagManagerConfig: {
+    tagManagerConfig: {
         enabled: true,
-        containerId: '', // Add your GTM container ID here (e.g., 'GTM-XXXXXX')
-        dataLayerName: 'dataLayer', // Default dataLayer name
-        requireConsent: false // Add this new parameter
+        containerId: 'GTM-WQMZC3RV', // Example: 'GTM-XXXXXX'
+        scriptUrl: '' // Optional: Custom script URL if not using standard GTM
     },
     
     // Microsoft UET Configuration
@@ -192,15 +191,15 @@ const config = {
         fontSize: '14px',
         transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
         
-       accept: {
-    background: '#2ecc71 !important',
-    color: '#ffffff !important',
-    border: '1px solid #2ecc71 !important',
-    hover: {
-        background: '#27ae60 !important',
-        color: '#ffffff !important',
-        transform: 'translateY(-1px) !important'
-    }
+        accept: {
+            background: '#2ecc71 !important',
+            color: '#ffffff !important',
+            border: '1px solid #2ecc71 !important',
+            hover: {
+                background: '#27ae60 !important',
+                color: '#ffffff !important',
+                transform: 'translateY(-1px) !important'
+            }
         },
         
         reject: {
@@ -420,31 +419,33 @@ function setDefaultUetConsent() {
     });
 }
 
-// Load Google Tag Manager if enabled and container ID is provided
+// Load Google Tag Manager if enabled
 function loadTagManager() {
     if (!config.tagManagerConfig.enabled || !config.tagManagerConfig.containerId) return;
     
-    // Create the GTM script
-    const gtmScript = document.createElement('script');
-    gtmScript.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','${config.tagManagerConfig.dataLayerName}','${config.tagManagerConfig.containerId}');`;
+    const containerId = config.tagManagerConfig.containerId;
+    const scriptUrl = config.tagManagerConfig.scriptUrl || `https://www.googletagmanager.com/gtm.js?id=${containerId}`;
     
-    document.head.appendChild(gtmScript);
+    // Inject the GTM script
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.async = true;
+    document.head.appendChild(script);
     
-    // Create the noscript iframe
+    // Inject the noscript iframe
     const noscript = document.createElement('noscript');
     const iframe = document.createElement('iframe');
-    iframe.src = `https://www.googletagmanager.com/ns.html?id=${config.tagManagerConfig.containerId}`;
+    iframe.src = `https://www.googletagmanager.com/ns.html?id=${containerId}`;
     iframe.height = '0';
     iframe.width = '0';
     iframe.style.display = 'none';
     iframe.style.visibility = 'hidden';
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
+    
+    console.log('Google Tag Manager loaded with container ID:', containerId);
 }
+
 // Enhanced cookie database with detailed descriptions
 const cookieDatabase = {
     // Existing cookies
@@ -2430,11 +2431,11 @@ function shouldShowBanner() {
 function initializeCookieConsent(detectedCookies, language) {
     const consentGiven = getCookie('cookie_consent');
     
-    // Check if banner should be shown based on geo-targeting
+    // Check if banner should be shown based on geo-targeting and schedule
     const geoAllowed = checkGeoTargeting(locationData);
+    const bannerShouldBeShown = geoAllowed && shouldShowBanner();
     
-    // Always show banner if no consent given and geo allowed
-    if (!consentGiven && geoAllowed) {
+    if (!consentGiven && config.behavior.autoShow && bannerShouldBeShown) {
         setTimeout(() => {
             showCookieBanner();
         }, config.behavior.bannerDelay * 1000);
@@ -2446,15 +2447,6 @@ function initializeCookieConsent(detectedCookies, language) {
             showFloatingButton();
         }
     }
-    
-    // Load GTM immediately if enabled and no consent required
-    if (config.tagManagerConfig.enabled && !config.tagManagerConfig.requireConsent) {
-        loadTagManager();
-    }}
-
-    
-
-
     // Explicitly apply the default language from config
     changeLanguage(config.languageConfig.defaultLanguage);
     
@@ -2722,7 +2714,7 @@ function hideFloatingButton() {
 function acceptAllCookies() {
     const consentData = {
         status: 'accepted',
-        gcs: 'G111',
+        gcs: 'G111', // Explicit GCS signal for all granted
         categories: {
             functional: true,
             analytics: true,
@@ -2741,7 +2733,7 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Push dataLayer event
+    // Push dataLayer event for consent acceptance with location data and GCS
     window.dataLayer.push({
         'event': 'cookie_consent_accepted',
         'consent_mode': {
@@ -2753,18 +2745,18 @@ function acceptAllCookies() {
             'functionality_storage': 'granted',
             'security_storage': 'granted'
         },
-        'gcs': 'G111',
+        'gcs': 'G111', // Explicit GCS signal
         'consent_status': 'accepted',
         'consent_categories': consentData.categories,
         'timestamp': new Date().toISOString(),
         'location_data': locationData
     });
     
-    // Always load Tag Manager if enabled, regardless of advertising consent
+    // Load Tag Manager if enabled
     if (config.tagManagerConfig.enabled) {
         loadTagManager();
     }
-}}
+}
 
 function rejectAllCookies() {
     const consentData = {
@@ -2900,7 +2892,7 @@ function saveCustomSettings() {
         });
     }
     
-    // Load Tag Manager if advertising is accepted
+    // Load Tag Manager if advertising is enabled
     if (consentData.categories.advertising && config.tagManagerConfig.enabled) {
         loadTagManager();
     }
