@@ -74,28 +74,28 @@
     letter-spacing: 0.2px;
 }
 
-.main-adjust-button {
-    background-color: #f8f9fa;
+.top-adjust-button {
+    background-color: #ffffff;
     color: #333333;
     border: 1px solid #e0e0e0;
 }
 
-.main-adjust-button:hover {
+.top-adjust-button:hover {
     background-color: #f0f2f5;
     color: #333333;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.main-reject-btn {
+.top-reject-btn {
     background-color: #ffffff;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
+    color: #030303de;
+    border: 1px solid #0302021c;
 }
 
-.main-reject-btn:hover {
-    background-color: #ffeeed;
-    color: #e74c3c;
+.top-reject-btn:hover {
+    background-color: #ffffff;
+    color: #030303de;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(231, 76, 60, 0.15);
 }
